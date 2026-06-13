@@ -7,6 +7,7 @@ import {
   useInView,
   AnimatePresence,
 } from "framer-motion";
+import { useTheme } from "next-themes";
 import { useEffect, useRef, useState } from "react";
 
 const navLinks = [
@@ -81,11 +82,75 @@ const fadeInView = {
   transition: { duration: 0.5, ease: "easeOut" as const },
 };
 
-const pricingSlideVariants = [
-  { opacity: 0, x: -80, y: 0 },
-  { opacity: 0, x: 0, y: 40 },
-  { opacity: 0, x: 80, y: 0 },
-];
+const pricingCardReveal = {
+  initial: { opacity: 0, y: 24 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, margin: "-40px" },
+  transition: { duration: 0.45, ease: "easeOut" as const },
+};
+
+function ThemeToggle() {
+  const { setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
+  const isDark = mounted && resolvedTheme === "dark";
+
+  return (
+    <motion.button
+      type="button"
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      whileTap={{ scale: 0.9 }}
+      transition={{ type: "spring", stiffness: 400, damping: 17 }}
+      aria-label="Toggle theme"
+      className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-700 transition-colors hover:border-purple-200 hover:bg-purple-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-purple-500/50 dark:hover:bg-gray-700"
+    >
+      {mounted ? (
+        <motion.div
+          key={isDark ? "sun" : "moon"}
+          initial={{ rotate: -90, opacity: 0, scale: 0.5 }}
+          animate={{ rotate: 0, opacity: 1, scale: 1 }}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        >
+          {isDark ? (
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              aria-hidden
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"
+              />
+            </svg>
+          ) : (
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              aria-hidden
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"
+              />
+            </svg>
+          )}
+        </motion.div>
+      ) : (
+        <span className="h-4 w-4" />
+      )}
+    </motion.button>
+  );
+}
 
 function Typewriter({
   text,
@@ -178,7 +243,7 @@ function SuccessCheckmark() {
       exit={{ opacity: 0, scale: 0.8 }}
       className="flex flex-col items-center justify-center py-16"
     >
-      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-purple-100 to-blue-100">
+      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-900/40 dark:to-blue-900/40">
         <svg
           className="h-10 w-10"
           viewBox="0 0 52 52"
@@ -213,7 +278,7 @@ function SuccessCheckmark() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
-        className="mt-6 text-xl font-semibold text-gray-900"
+        className="mt-6 text-xl font-semibold text-gray-900 dark:text-white"
       >
         Message sent successfully!
       </motion.p>
@@ -221,7 +286,7 @@ function SuccessCheckmark() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.75 }}
-        className="mt-2 text-base text-gray-600"
+        className="mt-2 text-base text-gray-600 dark:text-gray-300"
       >
         We&apos;ll get back to you shortly.
       </motion.p>
@@ -231,18 +296,28 @@ function SuccessCheckmark() {
 
 export default function Home() {
   const { scrollY } = useScroll();
+  const { resolvedTheme } = useTheme();
   const [submitted, setSubmitted] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
+  const isDark = mounted && resolvedTheme === "dark";
 
   const navBackground = useTransform(
     scrollY,
     [0, 80],
-    ["rgba(255, 255, 255, 0)", "rgba(255, 255, 255, 0.85)"],
+    isDark
+      ? ["rgba(17, 24, 39, 0)", "rgba(17, 24, 39, 0.8)"]
+      : ["rgba(255, 255, 255, 0)", "rgba(255, 255, 255, 0.85)"],
   );
   const navBlur = useTransform(scrollY, [0, 80], [0, 12]);
   const navBorder = useTransform(
     scrollY,
     [0, 80],
-    ["rgba(147, 51, 234, 0)", "rgba(147, 51, 234, 0.15)"],
+    isDark
+      ? ["rgba(55, 65, 81, 0)", "rgba(55, 65, 81, 1)"]
+      : ["rgba(147, 51, 234, 0)", "rgba(147, 51, 234, 0.15)"],
   );
   const navBackdropFilter = useTransform(navBlur, (v) => `blur(${v}px)`);
   const navBorderStyle = useTransform(navBorder, (v) => `1px solid ${v}`);
@@ -253,7 +328,7 @@ export default function Home() {
   };
 
   return (
-    <div className="relative min-h-full overflow-hidden bg-white font-sans">
+    <div className="relative min-h-full overflow-hidden bg-white font-sans dark:bg-gray-900">
       {/* Gradient accent blobs */}
       <div
         aria-hidden
@@ -299,23 +374,26 @@ export default function Home() {
                   />
                 </svg>
               </span>
-              <span className="text-lg font-bold tracking-tight text-gray-900 sm:text-xl">
+              <span className="text-lg font-bold tracking-tight text-gray-900 dark:text-white sm:text-xl">
                 FlowStack
               </span>
             </a>
 
-            <ul className="flex items-center gap-1 sm:gap-2">
-              {navLinks.map((link) => (
-                <li key={link.label}>
-                  <a
-                    href={link.href}
-                    className="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-purple-50 hover:text-purple-700 sm:px-4 sm:text-base"
-                  >
-                    {link.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
+            <div className="flex items-center gap-1 sm:gap-2">
+              <ThemeToggle />
+              <ul className="flex items-center gap-1 sm:gap-2">
+                {navLinks.map((link) => (
+                  <li key={link.label}>
+                    <a
+                      href={link.href}
+                      className="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-purple-50 hover:text-purple-700 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-purple-400 sm:px-4 sm:text-base"
+                    >
+                      {link.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </nav>
         </div>
       </motion.header>
@@ -369,13 +447,13 @@ export default function Home() {
               initial={{ opacity: 0, scale: 0.5, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ type: "spring", stiffness: 400, damping: 12, delay: 0.1 }}
-              className="mb-6 inline-flex items-center gap-2 rounded-full border border-purple-100 bg-purple-50/80 px-4 py-1.5 text-sm font-medium text-purple-700 backdrop-blur-sm"
+              className="mb-6 inline-flex items-center gap-2 rounded-full border border-purple-100 bg-purple-50/80 px-4 py-1.5 text-sm font-medium text-purple-700 backdrop-blur-sm dark:border-purple-900/50 dark:bg-purple-950/50 dark:text-purple-300"
             >
               <span className="h-1.5 w-1.5 rounded-full bg-gradient-to-r from-purple-500 to-blue-500" />
               Now in public beta
             </motion.div>
 
-            <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl lg:leading-[1.1]">
+            <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-5xl lg:text-6xl lg:leading-[1.1]">
               {headlineWords.map((word, index) => (
                 <motion.span
                   key={`${word.text}-${index}`}
@@ -401,7 +479,7 @@ export default function Home() {
             <Typewriter
               text={subheadlineText}
               delay={900}
-              className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-gray-600 sm:mt-8 sm:text-lg sm:leading-8"
+              className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-gray-600 dark:text-gray-300 sm:mt-8 sm:text-lg sm:leading-8"
             />
 
             <motion.div
@@ -423,7 +501,7 @@ export default function Home() {
               </a>
               <a
                 href="#features"
-                className="inline-flex h-12 w-full items-center justify-center rounded-xl border border-gray-200 bg-white px-8 text-base font-semibold text-gray-700 transition-all hover:border-purple-200 hover:bg-purple-50 hover:text-purple-700 sm:w-auto"
+                className="inline-flex h-12 w-full items-center justify-center rounded-xl border border-gray-200 bg-white px-8 text-base font-semibold text-gray-700 transition-all hover:border-purple-200 hover:bg-purple-50 hover:text-purple-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-purple-500/50 dark:hover:bg-gray-700 dark:hover:text-purple-400 sm:w-auto"
               >
                 Learn More
               </a>
@@ -442,13 +520,13 @@ export default function Home() {
             {...fadeInView}
             className="mx-auto max-w-2xl text-center"
           >
-            <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+            <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
               Everything you need to{" "}
               <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
                 move faster
               </span>
             </h2>
-            <p className="mt-4 text-base leading-relaxed text-gray-600 sm:text-lg">
+            <p className="mt-4 text-base leading-relaxed text-gray-600 dark:text-gray-300 sm:text-lg">
               Powerful features designed to help your team automate, collaborate,
               and grow.
             </p>
@@ -471,7 +549,7 @@ export default function Home() {
                   borderColor: "rgba(147, 51, 234, 0.25)",
                 }}
                 style={{ perspective: 1000, transformStyle: "preserve-3d" }}
-                className="group rounded-2xl border border-gray-100 bg-white p-8 shadow-sm transition-all hover:border-purple-100 hover:shadow-lg hover:shadow-purple-500/5"
+                className="group rounded-2xl border border-gray-100 bg-white p-8 shadow-sm transition-all hover:border-purple-100 hover:shadow-lg hover:shadow-purple-500/5 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-purple-500/30"
               >
                 <motion.div
                   initial={{ scale: 0, y: 20 }}
@@ -483,14 +561,14 @@ export default function Home() {
                     damping: 10,
                     delay: index * 0.1 + 0.3,
                   }}
-                  className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-purple-50 to-blue-50 text-2xl transition-colors group-hover:from-purple-100 group-hover:to-blue-100"
+                  className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-purple-50 to-blue-50 text-2xl transition-colors group-hover:from-purple-100 group-hover:to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 dark:group-hover:from-purple-900/50 dark:group-hover:to-blue-900/50"
                 >
                   {feature.icon}
                 </motion.div>
-                <h3 className="mt-5 text-xl font-bold text-gray-900">
+                <h3 className="mt-5 text-xl font-bold text-gray-900 dark:text-white">
                   {feature.title}
                 </h3>
-                <p className="mt-3 text-base leading-relaxed text-gray-600">
+                <p className="mt-3 text-base leading-relaxed text-gray-600 dark:text-gray-300">
                   {feature.description}
                 </p>
               </motion.div>
@@ -518,18 +596,18 @@ export default function Home() {
                     ease: "easeInOut",
                     delay: index * 0.3,
                   }}
-                  className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-purple-50 to-blue-50 text-2xl"
+                  className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-purple-50 to-blue-50 text-2xl dark:from-purple-900/30 dark:to-blue-900/30"
                 >
                   {stat.icon}
                 </motion.span>
-                <p className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+                <p className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
                   <Counter
                     value={stat.value}
                     suffix={stat.suffix}
                     format={stat.format}
                   />
                 </p>
-                <p className="mt-2 text-base font-medium text-gray-500">
+                <p className="mt-2 text-base font-medium text-gray-500 dark:text-gray-400">
                   {stat.label}
                 </p>
               </motion.div>
@@ -546,13 +624,13 @@ export default function Home() {
             {...fadeInView}
             className="mx-auto max-w-2xl text-center"
           >
-            <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+            <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
               Simple, transparent{" "}
               <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
                 pricing
               </span>
             </h2>
-            <p className="mt-4 text-base leading-relaxed text-gray-600 sm:text-lg">
+            <p className="mt-4 text-base leading-relaxed text-gray-600 dark:text-gray-300 sm:text-lg">
               Choose the plan that fits your team. Upgrade or downgrade anytime.
             </p>
           </motion.div>
@@ -561,41 +639,26 @@ export default function Home() {
             {pricingPlans.map((plan, index) => (
               <motion.div
                 key={plan.name}
-                initial={pricingSlideVariants[index]}
-                whileInView={{ opacity: 1, x: 0, y: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
+                initial={pricingCardReveal.initial}
+                whileInView={pricingCardReveal.whileInView}
+                viewport={pricingCardReveal.viewport}
                 transition={{
-                  duration: 0.6,
-                  ease: "easeOut",
-                  delay: index * 0.12,
+                  ...pricingCardReveal.transition,
+                  delay: index * 0.08,
                 }}
                 whileHover={{
-                  y: -8,
-                  boxShadow: "0 20px 40px rgba(0, 0, 0, 0.1)",
-                  transition: { duration: 0.25 },
+                  y: -4,
+                  transition: { duration: 0.2, ease: "easeOut" },
                 }}
                 className={`relative flex flex-col rounded-2xl p-8 ${
                   plan.highlighted
                     ? "border-2 border-transparent bg-gradient-to-b from-purple-600 to-blue-600 p-[2px] shadow-xl shadow-purple-500/20 lg:scale-105"
-                    : "border border-gray-100 bg-white shadow-sm"
+                    : "border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800"
                 }`}
               >
-                {plan.highlighted && (
-                  <motion.div
-                    aria-hidden
-                    animate={{ rotate: 360 }}
-                    transition={{
-                      duration: 4,
-                      repeat: Infinity,
-                      ease: "linear",
-                    }}
-                    className="pointer-events-none absolute inset-[-100%] bg-[conic-gradient(from_0deg,transparent_0%,#9333ea_25%,#3b82f6_50%,#9333ea_75%,transparent_100%)]"
-                  />
-                )}
-
                 <div
                   className={`relative flex flex-1 flex-col rounded-[14px] ${
-                    plan.highlighted ? "bg-white p-8" : ""
+                    plan.highlighted ? "bg-white p-8 dark:bg-gray-800" : ""
                   }`}
                 >
                   {plan.highlighted && (
@@ -604,13 +667,13 @@ export default function Home() {
                     </span>
                   )}
 
-                  <h3 className="text-xl font-bold text-gray-900">{plan.name}</h3>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">{plan.name}</h3>
 
                   <div className="mt-4 flex items-baseline gap-1">
-                    <span className="text-4xl font-extrabold tracking-tight text-gray-900">
+                    <span className="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white">
                       ${plan.price}
                     </span>
-                    <span className="text-base font-medium text-gray-500">
+                    <span className="text-base font-medium text-gray-500 dark:text-gray-400">
                       /month
                     </span>
                   </div>
@@ -619,9 +682,9 @@ export default function Home() {
                     {plan.features.map((item) => (
                       <li
                         key={item}
-                        className="flex items-center gap-3 text-base text-gray-600"
+                        className="flex items-center gap-3 text-base text-gray-600 dark:text-gray-300"
                       >
-                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-purple-100 to-blue-100 text-xs text-purple-700">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-purple-100 to-blue-100 text-xs text-purple-700 dark:from-purple-900/50 dark:to-blue-900/50 dark:text-purple-300">
                           ✓
                         </span>
                         {item}
@@ -634,7 +697,7 @@ export default function Home() {
                     className={`mt-8 inline-flex h-12 items-center justify-center rounded-xl px-6 text-base font-semibold transition-all ${
                       plan.highlighted
                         ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg shadow-purple-500/30 hover:from-purple-700 hover:to-blue-700"
-                        : "border border-gray-200 bg-white text-gray-700 hover:border-purple-200 hover:bg-purple-50 hover:text-purple-700"
+                        : "border border-gray-200 bg-white text-gray-700 hover:border-purple-200 hover:bg-purple-50 hover:text-purple-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-purple-500/50 dark:hover:bg-gray-700 dark:hover:text-purple-400"
                     }`}
                   >
                     Get Started
@@ -651,13 +714,13 @@ export default function Home() {
           className="mx-auto w-full max-w-7xl scroll-mt-20 px-4 py-20 sm:px-6 sm:pb-32 sm:py-28 lg:px-8"
         >
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+            <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
               Get in{" "}
               <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
                 touch
               </span>
             </h2>
-            <p className="mt-4 text-base leading-relaxed text-gray-600 sm:text-lg">
+            <p className="mt-4 text-base leading-relaxed text-gray-600 dark:text-gray-300 sm:text-lg">
               Have a question or want to learn more? Send us a message and
               we&apos;ll get back to you shortly.
             </p>
@@ -680,7 +743,7 @@ export default function Home() {
                   <div>
                     <label
                       htmlFor="name"
-                      className="block text-sm font-medium text-gray-700"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                     >
                       Name
                     </label>
@@ -694,14 +757,14 @@ export default function Home() {
                         boxShadow:
                           "0 0 0 3px rgba(147, 51, 234, 0.25), 0 0 20px rgba(147, 51, 234, 0.15)",
                       }}
-                      className="mt-2 block w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 transition-colors focus:border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+                      className="mt-2 block w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 transition-colors focus:border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500"
                     />
                   </div>
 
                   <div>
                     <label
                       htmlFor="email"
-                      className="block text-sm font-medium text-gray-700"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                     >
                       Email
                     </label>
@@ -715,14 +778,14 @@ export default function Home() {
                         boxShadow:
                           "0 0 0 3px rgba(147, 51, 234, 0.25), 0 0 20px rgba(147, 51, 234, 0.15)",
                       }}
-                      className="mt-2 block w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 transition-colors focus:border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+                      className="mt-2 block w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 transition-colors focus:border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500"
                     />
                   </div>
 
                   <div>
                     <label
                       htmlFor="message"
-                      className="block text-sm font-medium text-gray-700"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                     >
                       Message
                     </label>
@@ -736,7 +799,7 @@ export default function Home() {
                         boxShadow:
                           "0 0 0 3px rgba(147, 51, 234, 0.25), 0 0 20px rgba(147, 51, 234, 0.15)",
                       }}
-                      className="mt-2 block w-full resize-none rounded-xl border border-gray-200 bg-white px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 transition-colors focus:border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+                      className="mt-2 block w-full resize-none rounded-xl border border-gray-200 bg-white px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 transition-colors focus:border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500"
                     />
                   </div>
                 </div>
@@ -762,7 +825,7 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-purple-100 bg-white">
+      <footer className="relative z-10 border-t border-purple-100 bg-white dark:border-gray-700 dark:bg-gray-900">
         <div className="mx-auto flex w-full max-w-7xl flex-col items-center gap-6 px-4 py-8 sm:px-6 lg:flex-row lg:justify-between lg:gap-8 lg:px-8 lg:py-10">
           <div className="flex flex-col items-center gap-2 text-center lg:items-start lg:text-left">
             <a href="/" className="flex items-center gap-2.5">
@@ -782,11 +845,11 @@ export default function Home() {
                   />
                 </svg>
               </span>
-              <span className="text-lg font-bold tracking-tight text-gray-900">
+              <span className="text-lg font-bold tracking-tight text-gray-900 dark:text-white">
                 FlowStack
               </span>
             </a>
-            <p className="max-w-xs text-sm text-gray-500">
+            <p className="max-w-xs text-sm text-gray-500 dark:text-gray-400">
               Build faster with smarter workflows
             </p>
           </div>
@@ -796,7 +859,7 @@ export default function Home() {
               <li key={link.label}>
                 <a
                   href={link.href}
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-purple-50 hover:text-purple-700 sm:px-4"
+                  className="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-purple-50 hover:text-purple-700 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-purple-400 sm:px-4"
                 >
                   {link.label}
                 </a>
@@ -804,7 +867,7 @@ export default function Home() {
             ))}
           </ul>
 
-          <p className="text-center text-sm text-gray-500 lg:text-right">
+          <p className="text-center text-sm text-gray-500 dark:text-gray-400 lg:text-right">
             © 2025 FlowStack. All rights reserved.
           </p>
         </div>
