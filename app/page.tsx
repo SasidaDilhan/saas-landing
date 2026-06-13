@@ -342,6 +342,55 @@ export default function Home() {
           </form>
         </section>
       </main>
+
+      {/* Footer */}
+      <footer className="relative z-10 border-t border-purple-100 bg-white">
+        <div className="mx-auto flex w-full max-w-7xl flex-col items-center gap-6 px-4 py-8 sm:px-6 lg:flex-row lg:justify-between lg:gap-8 lg:px-8 lg:py-10">
+          <div className="flex flex-col items-center gap-2 text-center lg:items-start lg:text-left">
+            <a href="/" className="flex items-center gap-2.5">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-blue-500 shadow-md shadow-purple-500/25">
+                <svg
+                  className="h-4 w-4 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                  aria-hidden
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
+                </svg>
+              </span>
+              <span className="text-lg font-bold tracking-tight text-gray-900">
+                FlowStack
+              </span>
+            </a>
+            <p className="max-w-xs text-sm text-gray-500">
+              Build faster with smarter workflows
+            </p>
+          </div>
+
+          <ul className="flex items-center gap-1 sm:gap-2">
+            {navLinks.map((link) => (
+              <li key={link.label}>
+                <a
+                  href={link.href}
+                  className="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-purple-50 hover:text-purple-700 sm:px-4"
+                >
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+
+          <p className="text-center text-sm text-gray-500 lg:text-right">
+            © 2025 FlowStack. All rights reserved.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }
