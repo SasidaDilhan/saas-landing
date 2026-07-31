@@ -7,6 +7,7 @@ import {
   useInView,
   AnimatePresence,
 } from "framer-motion";
+import { Menu, X } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useRef, useState } from "react";
 
@@ -299,6 +300,7 @@ export default function Home() {
   const { resolvedTheme } = useTheme();
   const [submitted, setSubmitted] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
@@ -321,6 +323,18 @@ export default function Home() {
   );
   const navBackdropFilter = useTransform(navBlur, (v) => `blur(${v}px)`);
   const navBorderStyle = useTransform(navBorder, (v) => `1px solid ${v}`);
+
+  const handleMobileNavClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    href: string,
+  ) => {
+    e.preventDefault();
+    setMobileMenuOpen(false);
+    const target = document.querySelector(href);
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth" });
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -355,7 +369,7 @@ export default function Home() {
         }}
         className="fixed top-0 left-0 right-0 z-50"
       >
-        <div className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="relative z-50 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
           <nav className="flex items-center justify-between py-5 sm:py-6">
             <a href="/" className="flex items-center gap-2.5">
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-blue-500 shadow-md shadow-purple-500/25">
@@ -381,7 +395,7 @@ export default function Home() {
 
             <div className="flex items-center gap-1 sm:gap-2">
               <ThemeToggle />
-              <ul className="flex items-center gap-1 sm:gap-2">
+              <ul className="hidden items-center gap-1 sm:gap-2 md:flex">
                 {navLinks.map((link) => (
                   <li key={link.label}>
                     <a
@@ -393,9 +407,76 @@ export default function Home() {
                   </li>
                 ))}
               </ul>
+              <motion.button
+                type="button"
+                onClick={() => setMobileMenuOpen((open) => !open)}
+                whileTap={{ scale: 0.9 }}
+                transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+                aria-expanded={mobileMenuOpen}
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-700 transition-colors hover:border-purple-200 hover:bg-purple-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-purple-500/50 dark:hover:bg-gray-700 md:hidden"
+              >
+                {mobileMenuOpen ? (
+                  <X className="h-5 w-5" aria-hidden />
+                ) : (
+                  <Menu className="h-5 w-5" aria-hidden />
+                )}
+              </motion.button>
             </div>
           </nav>
         </div>
+
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              key="mobile-overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              onClick={() => setMobileMenuOpen(false)}
+              className="fixed inset-0 z-40 bg-black/50 dark:bg-black/70 md:hidden"
+              aria-hidden
+            />
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              key="mobile-menu"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="absolute left-0 right-0 top-full z-50 border-b border-gray-100 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900 md:hidden"
+            >
+              <ul className="flex flex-col px-4 py-4 sm:px-6">
+                {navLinks.map((link, index) => (
+                  <motion.li
+                    key={link.label}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 300,
+                      damping: 30,
+                      delay: index * 0.08,
+                    }}
+                  >
+                    <a
+                      href={link.href}
+                      onClick={(e) => handleMobileNavClick(e, link.href)}
+                      className="block rounded-lg px-3 py-3 text-base font-medium text-gray-600 transition-colors hover:bg-purple-50 hover:text-purple-700 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-purple-400"
+                    >
+                      {link.label}
+                    </a>
+                  </motion.li>
+                ))}
+              </ul>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.header>
 
       <main className="relative z-10">
