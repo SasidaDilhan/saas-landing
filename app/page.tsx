@@ -244,31 +244,64 @@ function SuccessCheckmark() {
       exit={{ opacity: 0, scale: 0.8 }}
       className="flex flex-col items-center justify-center py-16"
     >
-      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-900/40 dark:to-blue-900/40">
+      <div className="relative flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-900/40 dark:to-blue-900/40">
         <svg
-          className="h-10 w-10 text-purple-600 dark:text-purple-400"
-          viewBox="0 0 24 24"
+          className="absolute h-20 w-20 text-purple-600 dark:text-purple-400"
+          viewBox="0 0 52 52"
           fill="none"
           aria-hidden
         >
-          <motion.path
-            d="M20 6 9 17l-5-5"
+          <motion.circle
+            cx="26"
+            cy="26"
+            r="24"
             stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+            strokeWidth="2"
             fill="none"
             initial={{ pathLength: 0, opacity: 0 }}
             animate={{ pathLength: 1, opacity: 1 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
           />
         </svg>
-        <Check className="sr-only" aria-hidden />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{
+            type: "spring",
+            stiffness: 400,
+            damping: 15,
+            delay: 0.3,
+          }}
+          className="relative text-purple-600 dark:text-purple-400"
+        >
+          <Check
+            className="h-10 w-10 opacity-0"
+            strokeWidth={2.5}
+            aria-hidden
+          />
+          <svg
+            viewBox="0 0 24 24"
+            className="absolute inset-0 h-10 w-10"
+            fill="none"
+            aria-hidden
+          >
+            <motion.path
+              d="M20 6 9 17l-5-5"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 0.4, delay: 0.35, ease: "easeOut" }}
+            />
+          </svg>
+        </motion.div>
       </div>
       <motion.p
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.45 }}
+        transition={{ delay: 0.55 }}
         className="mt-6 text-center text-xl font-semibold text-gray-900 dark:text-white"
       >
         Message sent! We&apos;ll get back to you soon.
@@ -280,7 +313,12 @@ function SuccessCheckmark() {
 export default function Home() {
   const { scrollY } = useScroll();
   const { resolvedTheme } = useTheme();
-  const [submitted, setSubmitted] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [isError, setIsError] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -318,9 +356,36 @@ export default function Home() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSubmitted(true);
+    setIsLoading(true);
+    setIsError(false);
+
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, message }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to send message");
+      }
+
+      const data = (await response.json()) as { success?: boolean };
+      if (!data.success) {
+        throw new Error("Failed to send message");
+      }
+
+      setIsSuccess(true);
+      setName("");
+      setEmail("");
+      setMessage("");
+    } catch {
+      setIsError(true);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -790,7 +855,7 @@ export default function Home() {
           </div>
 
           <AnimatePresence mode="wait">
-            {submitted ? (
+            {isSuccess ? (
               <SuccessCheckmark key="success" />
             ) : (
               <motion.form
@@ -815,12 +880,15 @@ export default function Home() {
                       id="name"
                       name="name"
                       required
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
                       placeholder="Your name"
+                      disabled={isLoading}
                       whileFocus={{
                         boxShadow:
                           "0 0 0 3px rgba(147, 51, 234, 0.25), 0 0 20px rgba(147, 51, 234, 0.15)",
                       }}
-                      className="mt-2 block w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 transition-colors focus:border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500"
+                      className="mt-2 block w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 transition-colors focus:border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500/20 disabled:opacity-60 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500"
                     />
                   </div>
 
@@ -836,12 +904,15 @@ export default function Home() {
                       id="email"
                       name="email"
                       required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@company.com"
+                      disabled={isLoading}
                       whileFocus={{
                         boxShadow:
                           "0 0 0 3px rgba(147, 51, 234, 0.25), 0 0 20px rgba(147, 51, 234, 0.15)",
                       }}
-                      className="mt-2 block w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 transition-colors focus:border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500"
+                      className="mt-2 block w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 transition-colors focus:border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500/20 disabled:opacity-60 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500"
                     />
                   </div>
 
@@ -857,20 +928,39 @@ export default function Home() {
                       name="message"
                       required
                       rows={5}
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
                       placeholder="Tell us how we can help..."
+                      disabled={isLoading}
                       whileFocus={{
                         boxShadow:
                           "0 0 0 3px rgba(147, 51, 234, 0.25), 0 0 20px rgba(147, 51, 234, 0.15)",
                       }}
-                      className="mt-2 block w-full resize-none rounded-xl border border-gray-200 bg-white px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 transition-colors focus:border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500"
+                      className="mt-2 block w-full resize-none rounded-xl border border-gray-200 bg-white px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 transition-colors focus:border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500/20 disabled:opacity-60 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500"
                     />
                   </div>
                 </div>
 
+                <AnimatePresence>
+                  {isError && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.3, ease: "easeOut" }}
+                      className="mt-4 text-center text-sm font-medium text-red-600 dark:text-red-400"
+                      role="alert"
+                    >
+                      Something went wrong. Please try again.
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+
                 <motion.button
                   type="submit"
-                  whileHover="hover"
-                  className="relative mt-8 inline-flex h-12 w-full items-center justify-center overflow-hidden rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 px-8 text-base font-semibold text-white shadow-lg shadow-purple-500/30 transition-all hover:from-purple-700 hover:to-blue-700 hover:shadow-purple-500/40"
+                  disabled={isLoading}
+                  whileHover={isLoading ? undefined : "hover"}
+                  className="relative mt-8 inline-flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 px-8 text-base font-semibold text-white shadow-lg shadow-purple-500/30 transition-all hover:from-purple-700 hover:to-blue-700 hover:shadow-purple-500/40 disabled:cursor-not-allowed disabled:opacity-80"
                 >
                   <motion.span
                     variants={{
@@ -879,7 +969,16 @@ export default function Home() {
                     transition={{ duration: 0.7, ease: "easeInOut" }}
                     className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
                   />
-                  <span className="relative">Submit</span>
+                  <span className="relative inline-flex items-center gap-2">
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
+                        Sending...
+                      </>
+                    ) : (
+                      "Submit"
+                    )}
+                  </span>
                 </motion.button>
               </motion.form>
             )}
