@@ -7,7 +7,7 @@ import {
   useInView,
   AnimatePresence,
 } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { Check, Loader2, Menu, X } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useRef, useState } from "react";
 
@@ -246,50 +246,32 @@ function SuccessCheckmark() {
     >
       <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-900/40 dark:to-blue-900/40">
         <svg
-          className="h-10 w-10"
-          viewBox="0 0 52 52"
+          className="h-10 w-10 text-purple-600 dark:text-purple-400"
+          viewBox="0 0 24 24"
           fill="none"
           aria-hidden
         >
-          <motion.circle
-            cx="26"
-            cy="26"
-            r="24"
-            stroke="#9333ea"
-            strokeWidth="2"
-            fill="none"
-            initial={{ pathLength: 0, opacity: 0 }}
-            animate={{ pathLength: 1, opacity: 1 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-          />
           <motion.path
-            d="M14 27l8 8 16-16"
-            stroke="#9333ea"
-            strokeWidth="3"
+            d="M20 6 9 17l-5-5"
+            stroke="currentColor"
+            strokeWidth="2.5"
             strokeLinecap="round"
             strokeLinejoin="round"
             fill="none"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 0.4, delay: 0.3, ease: "easeOut" }}
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{ pathLength: 1, opacity: 1 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
           />
         </svg>
+        <Check className="sr-only" aria-hidden />
       </div>
       <motion.p
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6 }}
-        className="mt-6 text-xl font-semibold text-gray-900 dark:text-white"
+        transition={{ delay: 0.45 }}
+        className="mt-6 text-center text-xl font-semibold text-gray-900 dark:text-white"
       >
-        Message sent successfully!
-      </motion.p>
-      <motion.p
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.75 }}
-        className="mt-2 text-base text-gray-600 dark:text-gray-300"
-      >
-        We&apos;ll get back to you shortly.
+        Message sent! We&apos;ll get back to you soon.
       </motion.p>
     </motion.div>
   );
